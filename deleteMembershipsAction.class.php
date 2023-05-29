@@ -17,31 +17,68 @@
  * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA  02110-1301, USA
  */
-class deleteMembershipsAction extends baseAdminAction {
 
-    private $membershipService;
+/**
+ * Action class for PIM module delete memberships
+ *
+ */
+class deleteMembershipsAction extends basePimAction {
 
-    public function getMembershipService() {
-        if (is_null($this->membershipService)) {
-            $this->membershipService = new MembershipService();
-            $this->membershipService->setMembershipDao(new MembershipDao());
-        }
-        return $this->membershipService;
-    }
-
+    /**
+     * Delete employee memberships
+     *
+     * @param int $empNumber Employee number
+     *
+     * @return boolean true if successfully deleted, false otherwise
+     */
     public function execute($request) {
-        $form = new DefaultListForm();
-        $form->bind($request->getParameter($form->getName()));
-        $toBeDeletedIds = $request->getParameter('chkSelectRow');
-        if ($form->isValid()) {
-            $this->getMembershipService()->deleteMemberships($toBeDeletedIds);
-            $this->getUser()->setFlash('success', __(TopLevelMessages::DELETE_SUCCESS));
-        } else {
-            $this->handleBadRequest();
-            $this->forwardToSecureAction();
+
+        $empNumber = $request->getParameter('empNumber', false);
+        $this->form = new EmployeeMembershipsDeleteForm(array(), array('empNumber' => $empNumber), true);
+
+        $this->form->bind($request->getParameter($this->form->getName()));
+        $membershipPermissions = $this->getDataGroupPermissions('membership', $empNumber);
+        
+        if ($membershipPermissions->canDelete()) {
+            if ($this->form->isValid()) {
+
+                if (!$empNumber) {
+                    throw new PIMServiceException("No Employee ID given");
+                }
+                
+                $selectedRecordIds = $request->getParameter('chkmemdel', array());
+                
+                if (count($selectedRecordIds) > 0) {
+                    $service = new EmployeeService();
+                    $service->deleteEmployeeMemberships($selectedRecordIds);
+                    $this->getUser()->setFlash('memberships.success', __(TopLevelMessages::DELETE_SUCCESS));
+                }
+
+            } else {
+                $this->handleBadRequest();
+                $this->forwardToSecureAction();
+            }
         }
-        $this->redirect('admin/membership');
+        $this->redirect('pim/viewMemberships?empNumber=' . $empNumber);
+        
+    }
+    
+    private function _getSelectedMembershipDetails($records) {
+        
+        $empNumber = null;
+        $membershipIds = array();
+        
+        foreach ($records as $record) {
+            
+            $items = explode(" ", $record);
+            
+            $empNumber = trim($items[0]);
+            $membershipIds[] = trim($items[1]);
+            
+        }
+        
+        return array($empNumber, $membershipIds);
+        
     }
 
 }
-
