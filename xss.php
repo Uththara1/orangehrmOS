@@ -14,10 +14,7 @@
         $htmlValue = $_POST['html_input'];
         echo $htmlValue;
     }
-     echo '<div id="table" class="container">';
-            echo '<table id = "resultTable" class="highlight "><thead><tr>';
-            foreach ($headers as $header) {
-                echo '<th>' . $header . '</th>';
+     
     ?>
 </body>
 </html>
