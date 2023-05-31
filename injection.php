@@ -16,8 +16,8 @@
             $info = $sample->$info;
             echo '<div id="tableWrapper" class="list-container">';
             echo '<table id = "sampleTable" class="highlight bordered"><thead><tr>';
-            foreach ($abc as $header) {
-                echo '<th>' . $header . '</th>';
+            foreach ($abc as $abc) {
+                echo '<th>' . $abc . '</th>';
             }
             echo '</tr></thead><tbody>';
             $index = 1;
